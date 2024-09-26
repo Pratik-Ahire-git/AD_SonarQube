@@ -1,0 +1,49 @@
+---
+trigger: 
+- main
+
+parameters:
+- name: goals
+  displayName: Building steps  
+  type: string
+  default: 'package'
+- name: jdkVersion
+  displayName: java version
+  type: string
+  default: '1.17'
+
+pool:
+  vmImage: 'ubuntu-22.04' 
+
+stages:
+- stage: Built
+  displayName: Build using maven 
+  jobs:
+  - job: Build
+    displayName: Maven Build
+    steps:
+    - task: Maven@4
+      inputs:
+        mavenPOMFile: 'pom.xml'
+        goals: ${{ parameters.goals }}
+        publishJUnitResults: true 
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        javaHomeOption: 'JDKVersion'
+        jdkVersionOption: ${{ parameters.jdkversion }}
+        mavenVersionOption: 'Default'
+    - task: CopyFiles@2
+      inputs:
+        sourceFolder: '$(Build.SourcesDirectory)'
+        Contents: '**/target/spring-petclinic-3.3.0-SNAPSHOT.jar'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'Drop'
+
+  
+
+
+
+
+
